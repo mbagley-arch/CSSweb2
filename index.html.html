@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSS Mastery Lab - Guided Notes & Playground</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        navy: '#0f172a',
+                        slateDark: '#1e293b',
+                        indigoPrimary: '#4f46e5',
+                        cyanAccent: '#06b6d4',
+                        softBackground: '#f8fafc'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            color: #1e293b;
+        }
+        
+        .code-font {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Box Model Interactive Layer Styling */
+        .box-layer {
+            transition: all 0.25s ease-in-out;
+            cursor: pointer;
+        }
+        
+        .box-layer:hover, .box-layer.active-layer {
+            transform: scale(1.01);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        .tab-btn.active {
+            background-color: #4f46e5;
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+        }
+
+        /* Custom Input Blank Styling */
+        .note-input {
+            border-bottom: 2px solid #6366f1;
+            background-color: #f1f5f9;
+            transition: all 0.2s ease;
+            display: inline-block;
+            font-weight: 600;
+            color: #1e293b;
+            text-align: center;
+            padding: 2px 8px;
+            margin: 0 2px;
+            border-radius: 4px 4px 0 0;
+        }
+        
+        .note-input:focus {
+            outline: none;
+            background-color: #e0e7ff;
+            border-bottom-color: #4338ca;
+            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.2);
+        }
+
+        .note-input.correct {
+            background-color: #dcfce7 !important;
+            border-bottom-color: #16a34a !important;
+            color: #14532d !important;
+        }
+
+        .note-input.incorrect {
+            background-color: #fee2e2 !important;
+            border-bottom-color: #dc2626 !important;
+            color: #7f1d1d !important;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col bg-softBackground text-slateDark">
+
+    <!-- Top Header -->
+    <header class="bg-slateDark text-white sticky top-0 z-50 border-b border-slate-700 shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="bg-indigoPrimary p-2.5 rounded-xl shadow-lg flex items-center justify-center text-cyanAccent">
+                    <i class="fa-solid me-0 fa-code text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold tracking-tight text-white flex items-center gap-2">
+                        CSS Mastery Lab
+                        <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-cyanAccent/20 text-cyanAccent border border-cyanAccent/30">9th Grade CS</span>
+                    </h1>
+                    <p class="text-xs text-slate-400">Interactive Guided Notes & Learning Canvas</p>
+                </div>
+            </div>
+
+            <!-- Notes Progress Badge -->
+            <div class="hidden md:flex items-center space-x-3 bg-slate-800/80 px-4 py-2 rounded-xl border border-slate-700">
+                <div class="text-xs text-slate-300 font-medium">Notes Completion:</div>
+                <div class="w-32 bg-slate-700 h-2.5 rounded-full overflow-hidden">
+                    <div id="headerProgressBar" class="bg-gradient-to-r from-indigoPrimary to-cyanAccent h-full transition-all duration-300 w-0"></div>
+                </div>
+                <span id="headerProgressText" class="text-xs font-bold text-cyanAccent">0/21</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation Bar / Frame Switcher -->
+    <nav class="bg-white border-b border-slate-200 shadow-sm sticky top-16 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex space-x-2 py-3 overflow-x-auto no-scrollbar">
+                <button onclick="switchFrame('frame1')" id="btn-frame1" class="tab-btn active px-4 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition duration-150 whitespace-nowrap">
+                    <i class="fa-solid fa-book-open"></i> 1. Instructional Reading
+                </button>
+                <button onclick="switchFrame('frame2')" id="btn-frame2" class="tab-btn px-4 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition duration-150 whitespace-nowrap">
+                    <i class="fa-solid fa-pen-to-square"></i> 2. Guided Notes
+                    <span id="notesBadge" class="bg-indigo-100 text-indigoPrimary text-xs px-2 py-0.5 rounded-full font-bold">0/21</span>
+                </button>
+                <button onclick="switchFrame('frame3')" id="btn-frame3" class="tab-btn px-4 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition duration-150 whitespace-nowrap">
+                    <i class="fa-solid fa-laptop-code"></i> 3. Reflection & Sandbox
+                </button>
+                <button onclick="switchFrame('frame4')" id="btn-frame4" class="tab-btn px-4 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition duration-150 whitespace-nowrap">
+                    <i class="fa-solid fa-key"></i> 4. Teacher Answer Key
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Container -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+        <!-- FRAME 1: INSTRUCTIONAL READING PASSAGE -->
+        <section id="frame1" class="frame-content space-y-6">
+            <!-- Overview Banner -->
+            <div class="bg-gradient-to-r from-slateDark via-slate-800 to-indigo-900 rounded-2xl p-6 text-white shadow-lg border border-slate-700">
+                <div class="flex items-start justify-between">
+                    <div>
+                        <span class="text-xs uppercase tracking-wider font-bold text-cyanAccent bg-cyanAccent/10 px-3 py-1 rounded-full border border-cyanAccent/20">Lesson 1.1</span>
+                        <h2 class="text-2xl font-extrabold mt-2 text-white">Cascading Style Sheets (CSS) Fundamentals</h2>
+                        <p class="text-slate-300 text-sm mt-1 max-w-3xl">
+                            Read through this lesson text to understand how CSS transforms static HTML into visually compelling web pages. Keep these concepts in mind as you move on to the Guided Notes!
+                        </p>
+                    </div>
+                    <div class="hidden lg:block text-5xl text-cyanAccent opacity-30">
+                        <i class="fa-brands fa-css3-alt"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reading Passage Content -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Text Content Column -->
+                <div class="lg:col-span-2 space-y-6">
+                    
+                    <!-- Section: Intro -->
+                    <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="p-2 bg-indigo-50 text-indigoPrimary rounded-lg font-bold text-lg">01</div>
+                            <h3 class="text-xl font-bold text-slateDark">Introduction to Cascading Style Sheets (CSS)</h3>
+                        </div>
+                        <p class="text-slate-700 leading-relaxed text-sm mb-3">
+                            Cascading Style Sheets, commonly known as <strong class="text-indigoPrimary font-semibold">CSS</strong>, are used to format and design the layout of web pages. While HTML structures the actual content of a page (like text, images, and headers), CSS controls the visual <strong class="text-indigoPrimary font-semibold">presentation</strong> (or appearance) such as colors, fonts, layouts, and spacing.
+                        </p>
+                        <p class="text-slate-700 leading-relaxed text-sm">
+                            When web designers want to make a site visually appealing and well-structured, CSS provides the tools to modify how HTML elements are rendered on a <strong class="text-indigoPrimary font-semibold">screen</strong>.
+                        </p>
+                    </div>
+
+                    <!-- Section: Standard 1 -->
+                    <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="p-2 bg-cyan-50 text-cyan-600 rounded-lg font-bold text-lg">02</div>
+                            <h3 class="text-xl font-bold text-slateDark">Standard 1: Three Ways to Apply CSS to a Website</h3>
+                        </div>
+                        
+                        <div class="space-y-4">
+                            <!-- Inline -->
+                            <div class="p-4 bg-slate-50 rounded-xl border border-slate-200">
+                                <h4 class="font-bold text-slateDark text-base flex items-center gap-2">
+                                    <span class="w-2 h-2 rounded-full bg-indigoPrimary"></span> Inline Styles
+                                </h4>
+                                <p class="text-xs text-slate-600 mt-1">
+                                    An inline style is used to apply a unique style directly to a single HTML <strong class="text-slate-900">element</strong>. Designers write the CSS code inside the HTML tag using the <code class="code-font bg-slate-200 px-1.5 py-0.5 rounded text-indigo-700">style</code> attribute. Because inline styles only affect one specific element on a page, they are generally inefficient for styling an entire website, but they are useful for quick, single-element <strong class="text-slate-900">style</strong> adjustments.
+                                </p>
+                                <div class="mt-2 p-2 bg-slateDark rounded-lg text-slate-300 font-mono text-xs">
+                                    &lt;h1 <span class="text-cyanAccent">style="color: blue;"</span>&gt;Hello World&lt;/h1&gt;
+                                </div>
+                            </div>
+
+                            <!-- Internal -->
+                            <div class="p-4 bg-slate-50 rounded-xl border border-slate-200">
+                                <h4 class="font-bold text-slateDark text-base flex items-center gap-2">
+                                    <span class="w-2 h-2 rounded-full bg-cyan-500"></span> Internal Stylesheets
+                                </h4>
+                                <p class="text-xs text-slate-600 mt-1">
+                                    An internal stylesheet is used to style a single web <strong class="text-slate-900">page</strong> by placing CSS rules directly inside the HTML document. These style rules are placed within the <code class="code-font bg-slate-200 px-1.5 py-0.5 rounded text-indigo-700">&lt;style&gt;</code> tags located in the <code class="code-font bg-slate-200 px-1.5 py-0.5 rounded text-indigo-700">&lt;head&gt;</code> section of the HTML file. While internal styles keep code organized for one individual page, they cannot easily share styling rules across multiple <strong class="text-slate-900">pages</strong> on a site.
+                                </p>
+                            </div>
+
+                            <!-- External -->
+                            <div class="p-4 bg-slate-50 rounded-xl border border-slate-200">
+                                <h4 class="font-bold text-slateDark text-base flex items-center gap-2">
+                                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span> External Stylesheets (Best Coding Practice)
+                                </h4>
+                                <p class="text-xs text-slate-600 mt-1">
+                                    Using an external stylesheet is considered the best coding <strong class="text-slate-900">practice</strong> for web development. In this method, all CSS rules are stored in a separate file with a <code class="code-font bg-slate-200 px-1.5 py-0.5 rounded text-indigo-700">.css</code> file extension. This external file is then connected to HTML pages using the <code class="code-font bg-slate-200 px-1.5 py-0.5 rounded text-indigo-700">&lt;link&gt;</code> tag in the head section, allowing a designer to change the look of an entire <strong class="text-slate-900">website</strong> by editing just one single file.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section: Standard 2 Syntax -->
+                    <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="p-2 bg-emerald-50 text-emerald-600 rounded-lg font-bold text-lg">03</div>
+                            <h3 class="text-xl font-bold text-slateDark">Standard 2: Essential CSS Syntax & Rules</h3>
+                        </div>
+                        <p class="text-slate-700 leading-relaxed text-sm mb-4">
+                            Every CSS style rule consists of two main parts: a selector and a declaration block. The <strong class="text-indigoPrimary font-semibold">selector</strong> specifies which HTML element you want to style, such as a paragraph, heading, or image. Inside the curly braces, each declaration contains a property and a value separated by a <strong class="text-indigoPrimary font-semibold">colon (:)</strong>. Every individual declaration must end with a <strong class="text-indigoPrimary font-semibold">semicolon (;)</strong> to separate it from the next rule.
+                        </p>
+
+                        <!-- Code Example Breakdown Box -->
+                        <div class="bg-slateDark p-4 rounded-xl text-white font-mono text-sm space-y-2 border border-slate-700">
+                            <div class="text-xs text-slate-400 mb-1 border-b border-slate-700 pb-1">// Anatomy of a CSS Rule</div>
+                            <div class="text-base">
+                                <span class="text-yellow-400 font-bold" title="Selector">h1</span> { 
+                                <span class="text-cyan-400" title="Property">color</span>: 
+                                <span class="text-emerald-400" title="Value">blue</span>; 
+                                }
+                            </div>
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 text-xs text-slate-300 border-t border-slate-800">
+                                <div><span class="text-yellow-400 font-bold">h1</span>: Selector</div>
+                                <div><span class="text-cyan-400">color</span>: Property</div>
+                                <div><span class="text-emerald-400">blue</span>: Value</div>
+                                <div><span class="text-slate-400">;</span> Semicolon</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Interactive CSS Box Model Sidebar Visualizer -->
+                <div class="lg:col-span-1 space-y-6">
+                    <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 sticky top-36">
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="text-lg font-bold text-slateDark flex items-center gap-2">
+                                <i class="fa-solid fa-cube text-indigoPrimary"></i> CSS Box Model
+                            </h3>
+                            <span class="text-xs bg-indigo-50 text-indigoPrimary font-bold px-2 py-1 rounded">Interactive</span>
+                        </div>
+                        <p class="text-xs text-slate-600 mb-4">
+                            Hover or click on each box layer below to explore how space is calculated in CSS!
+                        </p>
+
+                        <!-- SVG / HTML Nested Layer Box Model -->
+                        <div class="space-y-3">
+                            <!-- MARGIN LAYER -->
+                            <div onclick="selectBoxLayer('margin')" id="layer-margin" class="box-layer p-4 bg-orange-100 border-2 border-dashed border-orange-400 rounded-xl text-center text-orange-900 font-bold text-xs uppercase tracking-wider">
+                                <div class="mb-1 flex items-center justify-between">
+                                    <span>Margin</span>
+                                    <span class="text-[10px] font-normal text-orange-700">Outer Space</span>
+                                </div>
+                                
+                                <!-- BORDER LAYER -->
+                                <div onclick="event.stopPropagation(); selectBoxLayer('border');" id="layer-border" class="box-layer p-4 bg-amber-200 border-4 border-amber-500 rounded-lg text-amber-950 font-bold text-xs">
+                                    <div class="mb-1 flex items-center justify-between">
+                                        <span>Border</span>
+                                        <span class="text-[10px] font-normal text-amber-800">Edge / Frame</span>
+                                    </div>
+                                    
+                                    <!-- PADDING LAYER -->
+                                    <div onclick="event.stopPropagation(); selectBoxLayer('padding');" id="layer-padding" class="box-layer p-4 bg-emerald-100 border-2 border-emerald-400 rounded-md text-emerald-900 font-bold text-xs">
+                                        <div class="mb-1 flex items-center justify-between">
+                                            <span>Padding</span>
+                                            <span class="text-[10px] font-normal text-emerald-700">Inner Space</span>
+                                        </div>
+                                        
+                                        <!-- CONTENT LAYER -->
+                                        <div onclick="event.stopPropagation(); selectBoxLayer('content');" id="layer-content" class="box-layer p-4 bg-indigo-600 text-white rounded font-bold text-xs shadow-inner">
+                                            Content Area (Text/Image)
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Dynamic Explanation Panel -->
+                        <div id="boxModelDetail" class="mt-4 p-4 bg-slate-50 border border-slate-200 rounded-xl transition-all duration-200">
+                            <h4 id="boxDetailTitle" class="font-bold text-slateDark text-sm flex items-center gap-2">
+                                <i class="fa-solid fa-circle-info text-indigoPrimary"></i> Click a layer above
+                            </h4>
+                            <p id="boxDetailDesc" class="text-xs text-slate-600 mt-1 leading-relaxed">
+                                Every HTML element is structured as a rectangular box consisting of Content, Padding, Border, and Margin.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FRAME 2: INTERACTIVE GUIDED NOTES -->
+        <section id="frame2" class="frame-content hidden space-y-6">
+            
+            <!-- Controls Bar & Progress -->
+            <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col md:flex-row items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-xl font-bold text-slateDark flex items-center gap-2">
+                        <i class="fa-solid fa-pen-clip text-indigoPrimary"></i> Student Guided Notes
+                    </h2>
+                    <p class="text-xs text-slate-500 mt-0.5">Fill in all blanks by referring to the Instructional Reading passage.</p>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
+                    <!-- Word Bank Toggle -->
+                    <button onclick="toggleWordBank()" id="btnWordBank" class="px-3.5 py-2 text-xs font-bold rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-100 flex items-center gap-1.5 transition">
+                        <i class="fa-solid fa-lightbulb text-amber-500"></i> Toggle Word Bank
+                    </button>
+
+                    <!-- Check Answers Button -->
+                    <button onclick="checkGuidedNotes()" class="px-4 py-2 bg-indigoPrimary text-white text-xs font-bold rounded-xl shadow-md hover:bg-indigo-700 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-circle-check"></i> Check Answers
+                    </button>
+
+                    <!-- Reset Button -->
+                    <button onclick="resetGuidedNotes()" class="px-3 py-2 text-xs font-semibold text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition">
+                        <i class="fa-solid fa-rotate-left"></i> Reset
+                    </button>
+                </div>
+            </div>
+
+            <!-- Optional Word Bank Container -->
+            <div id="wordBankDrawer" class="hidden bg-amber-50/80 border border-amber-200 rounded-2xl p-4 transition-all">
+                <div class="flex items-center justify-between mb-2">
+                    <h4 class="text-xs font-extrabold uppercase tracking-wider text-amber-900 flex items-center gap-2">
+                        <i class="fa-solid fa-spell-check text-amber-600"></i> Word Bank (Scaffolding Helper)
+                    </h4>
+                    <span class="text-[10px] text-amber-700 font-medium">Use these words to fill in the missing blanks below</span>
+                </div>
+                <div class="flex flex-wrap gap-2 pt-1" id="wordBankTags">
+                    <!-- Words rendered via JS -->
+                </div>
+            </div>
+
+            <!-- Guided Notes Document Paper -->
+            <div class="bg-white rounded-2xl p-6 md:p-8 shadow-sm border border-slate-200 space-y-8 leading-relaxed">
+                
+                <!-- Notes Section 1 -->
+                <div>
+                    <h3 class="text-lg font-bold text-slateDark border-b border-slate-200 pb-2 mb-3 flex items-center gap-2">
+                        <span class="w-3 h-3 rounded-full bg-indigoPrimary"></span> Introduction to Cascading Style Sheets (CSS)
+                    </h3>
+                    <p class="text-slate-700 text-sm leading-8">
+                        Cascading Style Sheets, commonly known as 
+                        <input type="text" data-answer="CSS" class="note-input w-20" placeholder="______">, 
+                        are used to format and design the layout of web pages. While HTML structures the actual content of a page, CSS controls the visual 
+                        <input type="text" data-answer="presentation" class="note-input w-36" placeholder="______"> 
+                        such as colors, fonts, layouts, and spacing. When web designers want to make a site visually appealing and well-structured, CSS provides the tools to modify how HTML elements are rendered on a 
+                        <input type="text" data-answer="screen" class="note-input w-24" placeholder="______">.
+                    </p>
+                </div>
+
+                <!-- Notes Section 2 -->
+                <div>
+                    <h3 class="text-lg font-bold text-slateDark border-b border-slate-200 pb-2 mb-3 flex items-center gap-2">
+                        <span class="w-3 h-3 rounded-full bg-cyan-500"></span> Standard 1: Three Ways to Apply CSS to a Website
+                    </h3>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <h4 class="font-semibold text-slate-800 text-sm">A. Inline Styles</h4>
+                            <p class="text-slate-700 text-sm leading-8 mt-1">
+                                An inline style is used to apply a unique style directly to a single HTML 
+                                <input type="text" data-answer="element" class="note-input w-28" placeholder="______">. 
+                                Designers write the CSS code inside the HTML tag using the 
+                                <input type="text" data-answer="style" class="note-input w-24" placeholder="______"> 
+                                attribute. Because inline styles only affect one specific element on a page, they are generally inefficient for styling an entire website, but they are useful for quick, single-element 
+                                <input type="text" data-answer="style" class="note-input w-24" placeholder="______"> adjustments.
+                            </p>
+                        </div>
+
+                        <div>
+                            <h4 class="font-semibold text-slate-800 text-sm">B. Internal Stylesheets</h4>
+                            <p class="text-slate-700 text-sm leading-8 mt-1">
+                                An internal stylesheet is used to style a single web 
+                                <input type="text" data-answer="page" class="note-input w-20" placeholder="______"> 
+                                by placing CSS rules directly inside the HTML document. These style rules are placed within the 
+                                <code class="code-font text-xs bg-slate-100 px-1 py-0.5 rounded">&lt;style&gt;</code> tags located in the 
+                                <input type="text" data-answer="head" class="note-input w-20" placeholder="______"> 
+                                section of the HTML file. While internal styles keep code organized for one individual page, they cannot easily share styling rules across multiple 
+                                <input type="text" data-answer="pages" class="note-input w-24" placeholder="______"> on a site.
+                            </p>
+                        </div>
+
+                        <div>
+                            <h4 class="font-semibold text-slate-800 text-sm">C. External Stylesheets</h4>
+                            <p class="text-slate-700 text-sm leading-8 mt-1">
+                                Using an external stylesheet is considered the best coding 
+                                <input type="text" data-answer="practice" class="note-input w-28" placeholder="______"> 
+                                for web development. In this method, all CSS rules are stored in a separate file with a 
+                                <input type="text" data-answer=".css" class="note-input w-20" placeholder="______"> 
+                                file extension. This external file is then connected to HTML pages using the 
+                                <code class="code-font text-xs bg-slate-100 px-1 py-0.5 rounded">&lt;link&gt;</code> tag in the head section, allowing a designer to change the look of an entire 
+                                <input type="text" data-answer="website" class="note-input w-28" placeholder="______"> by editing just one single file.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notes Section 3 -->
+                <div>
+                    <h3 class="text-lg font-bold text-slateDark border-b border-slate-200 pb-2 mb-3 flex items-center gap-2">
+                        <span class="w-3 h-3 rounded-full bg-emerald-500"></span> Standard 2: Essential CSS Syntax and Rules
+                    </h3>
+                    <p class="text-slate-700 text-sm leading-8">
+                        Every CSS style rule consists of two main parts: a selector and a declaration block. The 
+                        <input type="text" data-answer="selector" class="note-input w-28" placeholder="______"> 
+                        specifies which HTML element you want to style, such as a paragraph, heading, or image. Inside the curly braces, each declaration contains a property and a value separated by a 
+                        <input type="text" data-answer="colon" class="note-input w-20" placeholder="______">. 
+                        Every individual declaration must end with a 
+                        <input type="text" data-answer="semicolon" class="note-input w-28" placeholder="______"> 
+                        to separate it from the next rule. For example, in the rule <code class="code-font text-xs bg-slate-100 px-1 py-0.5 rounded">p { color: blue; }</code>, <code class="code-font text-xs">p</code> is the selector, <code class="code-font text-xs">color</code> is the 
+                        <input type="text" data-answer="property" class="note-input w-28" placeholder="______">, and <code class="code-font text-xs">blue</code> is the value.
+                    </p>
+                </div>
+
+                <!-- Notes Section 4 -->
+                <div>
+                    <h3 class="text-lg font-bold text-slateDark border-b border-slate-200 pb-2 mb-3 flex items-center gap-2">
+                        <span class="w-3 h-3 rounded-full bg-amber-500"></span> Standard 2 (Continued): The CSS Box Model
+                    </h3>
+                    <p class="text-slate-700 text-sm leading-8">
+                        In CSS, every HTML element on a webpage is treated as a rectangular box. The CSS 
+                        <input type="text" data-answer="Box" class="note-input w-20" placeholder="______"> 
+                        Model describes how these layers are structured to calculate the total space an element takes up on the screen.
+                    </p>
+                    <p class="text-slate-700 text-sm leading-8 mt-2">
+                        At the core of the box model is the 
+                        <input type="text" data-answer="content" class="note-input w-28" placeholder="______">, 
+                        which holds the actual text, image, or media. Directly surrounding the content is the 
+                        <input type="text" data-answer="padding" class="note-input w-28" placeholder="______">, 
+                        which creates transparent inner space around the content inside the box. Wrapping around the padding is the 
+                        <input type="text" data-answer="border" class="note-input w-24" placeholder="______">, 
+                        which forms a visible or invisible frame around the element. Finally, the 
+                        <input type="text" data-answer="margin" class="note-input w-24" placeholder="______"> 
+                        creates transparent outer space beyond the border to push neighboring elements away.
+                    </p>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- FRAME 3: REFLECTION & CODE SANDBOX -->
+        <section id="frame3" class="frame-content hidden space-y-6">
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                
+                <!-- Reflection Questions Left Panel -->
+                <div class="space-y-6">
+                    <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+                        <h2 class="text-xl font-bold text-slateDark mb-1 flex items-center gap-2">
+                            <i class="fa-solid fa-brain text-indigoPrimary"></i> Post-Activity Reflection
+                        </h2>
+                        <p class="text-xs text-slate-500 mb-6">Synthesize your learning by answering these short essay questions.</p>
+
+                        <form id="reflectionForm" class="space-y-6">
+                            <!-- Q1 -->
+                            <div class="space-y-2">
+                                <label class="block text-xs font-bold text-slate-800 leading-snug">
+                                    1. Comparing CSS Implementation Methods:
+                                    <span class="font-normal text-slate-600 block mt-0.5">
+                                        Explain why using an external stylesheet is considered "best coding practice" for web development compared to inline or internal styling. In what scenario might an inline style still be useful?
+                                    </span>
+                                </label>
+                                <textarea rows="3" class="w-full text-xs p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigoPrimary focus:outline-none" placeholder="Type your response here..."></textarea>
+                            </div>
+
+                            <!-- Q2 -->
+                            <div class="space-y-2">
+                                <label class="block text-xs font-bold text-slate-800 leading-snug">
+                                    2. Analyzing the CSS Box Model:
+                                    <span class="font-normal text-slate-600 block mt-0.5">
+                                        Imagine you have two text boxes on a webpage touching each other. If you want to increase space INSIDE the box around text, which property do you adjust? Which property creates space BETWEEN the two boxes?
+                                    </span>
+                                </label>
+                                <textarea rows="3" class="w-full text-xs p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigoPrimary focus:outline-none" placeholder="Type your response here..."></textarea>
+                            </div>
+
+                            <!-- Q3 -->
+                            <div class="space-y-2">
+                                <label class="block text-xs font-bold text-slate-800 leading-snug">
+                                    3. CSS Syntax Breakdown:
+                                    <span class="font-normal text-slate-600 block mt-0.5">
+                                        Write a complete CSS rule that sets the background color of all `h1` headings to yellow. Identify the selector, property, and value.
+                                    </span>
+                                </label>
+                                <textarea rows="3" class="w-full text-xs p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigoPrimary focus:outline-none" placeholder="Example: h1 { background-color: yellow; }&#10;Selector: h1&#10;Property: background-color&#10;Value: yellow"></textarea>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Interactive CSS Sandbox Right Panel -->
+                <div class="space-y-6">
+                    <div class="bg-slateDark text-white rounded-2xl p-6 shadow-lg border border-slate-700 flex flex-col h-full">
+                        <div class="flex items-center justify-between mb-4 border-b border-slate-700 pb-3">
+                            <h3 class="text-base font-bold text-white flex items-center gap-2">
+                                <i class="fa-solid fa-code text-cyanAccent"></i> Live CSS Code Playground
+                            </h3>
+                            <button onclick="resetSandbox()" class="text-xs text-slate-400 hover:text-white transition">
+                                <i class="fa-solid fa-arrow-rotate-left"></i> Reset Code
+                            </button>
+                        </div>
+
+                        <!-- Editor -->
+                        <div class="space-y-2 mb-4">
+                            <label class="text-xs font-mono text-cyanAccent">Target Selector: <span class="text-slate-300">#sandbox-card</span></label>
+                            <textarea id="cssEditor" oninput="updateLivePreview()" rows="7" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-xs font-mono text-emerald-400 focus:outline-none focus:ring-2 focus:ring-cyanAccent">
+background-color: #e0e7ff;
+color: #3730a3;
+padding: 20px;
+border: 4px solid #6366f1;
+margin: 15px;
+border-radius: 12px;
+font-weight: bold;
+text-align: center;
+</textarea>
+                        </div>
+
+                        <!-- Live Visual Preview Box -->
+                        <div class="flex-grow bg-slate-800 rounded-xl p-4 border border-slate-700 flex flex-col justify-center">
+                            <div class="text-[10px] text-slate-400 uppercase tracking-widest font-mono mb-2 text-center">Live Rendering Window</div>
+                            
+                            <!-- Render Target Box -->
+                            <div class="bg-slate-900 p-2 rounded-lg border border-slate-700 overflow-hidden">
+                                <div id="sandboxTarget" class="transition-all duration-150">
+                                    <h4 class="text-sm">Hello CSS Web Designer!</h4>
+                                    <p class="text-xs opacity-80 mt-1 font-normal">Edit the CSS properties above to see changes live in real-time.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- FRAME 4: TEACHER ANSWER KEY -->
+        <section id="frame4" class="frame-content hidden space-y-6">
+            
+            <!-- Password Lock Screen Overlay (Toggled via JS) -->
+            <div id="teacherLockScreen" class="bg-white rounded-2xl p-8 shadow-sm border border-slate-200 text-center max-w-md mx-auto my-12 space-y-4">
+                <div class="w-16 h-16 bg-indigo-50 text-indigoPrimary rounded-full flex items-center justify-center mx-auto text-2xl shadow-inner">
+                    <i class="fa-solid fa-lock"></i>
+                </div>
+                <h3 class="text-xl font-bold text-slateDark">Teacher Answer Key Access</h3>
+                <p class="text-xs text-slate-500">Please enter the teacher passkey to view solutions and reflection rubrics.</p>
+                <div class="space-y-3">
+                    <input type="password" id="passkeyInput" class="w-full text-center px-4 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigoPrimary focus:outline-none text-sm" placeholder="Passkey (Default: cs101)">
+                    <button onclick="unlockTeacherKey()" class="w-full py-2.5 bg-indigoPrimary text-white font-bold text-xs rounded-xl shadow hover:bg-indigo-700 transition">
+                        Unlock Answer Key
+                    </button>
+                    <p id="passkeyError" class="text-xs text-rose-600 hidden font-semibold">Incorrect passkey. Please try again.</p>
+                </div>
+            </div>
+
+            <!-- Unlocked Content -->
+            <div id="teacherKeyContent" class="hidden space-y-6">
+                
+                <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <i class="fa-solid fa-circle-check text-emerald-600 text-xl"></i>
+                        <div>
+                            <h3 class="text-sm font-bold text-emerald-900">Teacher Key Unlocked</h3>
+                            <p class="text-xs text-emerald-700">Displaying correct guided note answers & model reflection responses.</p>
+                        </div>
+                    </div>
+                    <button onclick="lockTeacherKey()" class="px-3 py-1.5 text-xs bg-emerald-200 text-emerald-900 font-bold rounded-lg hover:bg-emerald-300 transition">
+                        Lock Key
+                    </button>
+                </div>
+
+                <!-- Guided Notes Keys -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 space-y-6">
+                    <h3 class="text-lg font-bold text-slateDark border-b border-slate-200 pb-2">
+                        <i class="fa-solid fa-list-check text-indigoPrimary"></i> Guided Notes Answer Key
+                    </h3>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
+                        <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                            <h4 class="font-bold text-indigoPrimary text-sm">Intro to CSS</h4>
+                            <ul class="list-disc list-inside space-y-1 text-slate-700">
+                                <li>Blank 1: <strong class="text-slate-900">CSS</strong></li>
+                                <li>Blank 2: <strong class="text-slate-900">presentation</strong></li>
+                                <li>Blank 3: <strong class="text-slate-900">screen</strong></li>
+                            </ul>
+                        </div>
+
+                        <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                            <h4 class="font-bold text-cyan-600 text-sm">Standard 1: Three Ways to Apply CSS</h4>
+                            <ul class="list-disc list-inside space-y-1 text-slate-700">
+                                <li>Inline Styles: <strong class="text-slate-900">element</strong>, <strong class="text-slate-900">style</strong>, <strong class="text-slate-900">style</strong></li>
+                                <li>Internal Stylesheets: <strong class="text-slate-900">page</strong>, <strong class="text-slate-900">head</strong>, <strong class="text-slate-900">pages</strong></li>
+                                <li>External Stylesheets: <strong class="text-slate-900">practice</strong>, <strong class="text-slate-900">.css</strong>, <strong class="text-slate-900">website</strong></li>
+                            </ul>
+                        </div>
+
+                        <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                            <h4 class="font-bold text-emerald-600 text-sm">Standard 2: Essential CSS Syntax</h4>
+                            <ul class="list-disc list-inside space-y-1 text-slate-700">
+                                <li>Blank 13: <strong class="text-slate-900">selector</strong></li>
+                                <li>Blank 14: <strong class="text-slate-900">colon</strong></li>
+                                <li>Blank 15: <strong class="text-slate-900">semicolon</strong></li>
+                                <li>Blank 16: <strong class="text-slate-900">property</strong></li>
+                            </ul>
+                        </div>
+
+                        <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                            <h4 class="font-bold text-amber-600 text-sm">Standard 2: CSS Box Model</h4>
+                            <ul class="list-disc list-inside space-y-1 text-slate-700">
+                                <li>Blank 17: <strong class="text-slate-900">Box</strong></li>
+                                <li>Blank 18: <strong class="text-slate-900">content</strong></li>
+                                <li>Blank 19: <strong class="text-slate-900">padding</strong></li>
+                                <li>Blank 20: <strong class="text-slate-900">border</strong></li>
+                                <li>Blank 21: <strong class="text-slate-900">margin</strong></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Reflection Question Model Answers -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 space-y-4">
+                    <h3 class="text-lg font-bold text-slateDark border-b border-slate-200 pb-2">
+                        <i class="fa-solid fa-graduation-cap text-indigoPrimary"></i> Reflection Answer Exemplars & Rubric
+                    </h3>
+
+                    <div class="space-y-3 text-xs">
+                        <div class="p-3 bg-slate-50 rounded-xl">
+                            <p class="font-bold text-slate-800">Q1. External Stylesheets rationale:</p>
+                            <p class="text-slate-600 mt-1">Model Answer: External stylesheets separate design from structure. Changing a single `.css` file updates the entire website instantly rather than editing every HTML page individually. Inline styles are only useful for quick, single-element visual tests or quick fixes.</p>
+                        </div>
+
+                        <div class="p-3 bg-slate-50 rounded-xl">
+                            <p class="font-bold text-slate-800">Q2. Box Model Padding vs Margin:</p>
+                            <p class="text-slate-600 mt-1">Model Answer: To create space inside the box around the text, adjust <strong class="text-indigoPrimary">padding</strong>. To push the two boxes apart from one another, adjust <strong class="text-indigoPrimary">margin</strong>.</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        /* Word Bank Data Array */
+        const wordBankList = [
+            "CSS", "presentation", "screen", "element", "style", "page", 
+            "head", "pages", "practice", ".css", "website", "selector", 
+            "colon", "semicolon", "property", "Box", "content", "padding", 
+            "border", "margin"
+        ];
+
+        /* Box Model Detail Explanations */
+        const boxModelDetails = {
+            margin: {
+                title: "<i class='fa-solid fa-arrows-left-right text-orange-500'></i> Margin Layer",
+                desc: "Transparent outer space around the element. Margin pushes neighboring HTML elements away from each other on the webpage."
+            },
+            border: {
+                title: "<i class='fa-solid fa-border-all text-amber-500'></i> Border Layer",
+                desc: "The visible or invisible frame that wraps around padding and content. You can style its thickness, color, and border-style (e.g., solid, dashed)."
+            },
+            padding: {
+                title: "<i class='fa-solid fa-maximize text-emerald-500'></i> Padding Layer",
+                desc: "Transparent inner breathing space between the content and its border. Like bubble wrap inside a box!"
+            },
+            content: {
+                title: "<i class='fa-solid fa-font text-indigo-500'></i> Content Layer",
+                desc: "The core area where actual text, images, or media reside inside the element box."
+            }
+        };
+
+        window.addEventListener('DOMContentLoaded', () => {
+            initInputsTracker();
+            populateWordBank();
+            updateLivePreview();
+        });
+
+        // Frame Navigation Switcher
+        function switchFrame(frameId) {
+            document.querySelectorAll('.frame-content').forEach(frame => {
+                frame.classList.add('hidden');
+            });
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            document.getElementById(frameId).classList.remove('hidden');
+            document.getElementById('btn-' + frameId).classList.add('active');
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Box Model Interactive Selector
+        function selectBoxLayer(layerName) {
+            document.querySelectorAll('.box-layer').forEach(el => el.classList.remove('active-layer'));
+            const target = document.getElementById('layer-' + layerName);
+            if(target) target.classList.add('active-layer');
+
+            const info = boxModelDetails[layerName];
+            if(info) {
+                document.getElementById('boxDetailTitle').innerHTML = info.title;
+                document.getElementById('boxDetailDesc').innerHTML = info.desc;
+            }
+        }
+
+        // Initialize Input Progress Listeners
+        function initInputsTracker() {
+            const inputs = document.querySelectorAll('.note-input');
+            inputs.forEach(input => {
+                input.addEventListener('input', updateProgress);
+            });
+            updateProgress();
+        }
+
+        // Live Progress Tracker Calculation
+        function updateProgress() {
+            const inputs = document.querySelectorAll('.note-input');
+            let filledCount = 0;
+            inputs.forEach(input => {
+                if (input.value.trim() !== '') {
+                    filledCount++;
+                }
+            });
+
+            const total = inputs.length;
+            const percentage = Math.round((filledCount / total) * 100);
+
+            document.getElementById('headerProgressBar').style.width = percentage + '%';
+            document.getElementById('headerProgressText').innerText = `${filledCount}/${total}`;
+            document.getElementById('notesBadge').innerText = `${filledCount}/${total}`;
+        }
+
+        // Toggle Word Bank Scaffold
+        function toggleWordBank() {
+            const drawer = document.getElementById('wordBankDrawer');
+            drawer.classList.toggle('hidden');
+        }
+
+        function populateWordBank() {
+            const container = document.getElementById('wordBankTags');
+            // Shuffle word bank for gamified feel
+            const shuffled = [...wordBankList].sort(() => Math.random() - 0.5);
+            container.innerHTML = shuffled.map(word => 
+                `<span class="bg-white border border-amber-300 text-amber-900 text-xs font-mono font-semibold px-2.5 py-1 rounded-lg shadow-sm">${word}</span>`
+            ).join('');
+        }
+
+        // Validate Guided Notes Answers
+        function checkGuidedNotes() {
+            const inputs = document.querySelectorAll('.note-input');
+            let correctCount = 0;
+
+            inputs.forEach(input => {
+                const targetAnswer = input.getAttribute('data-answer').toLowerCase().trim();
+                const userVal = input.value.toLowerCase().trim();
+
+                input.classList.remove('correct', 'incorrect');
+
+                if (userVal === targetAnswer || (targetAnswer === '.css' && userVal === 'css')) {
+                    input.classList.add('correct');
+                    correctCount++;
+                } else if (userVal !== '') {
+                    input.classList.add('incorrect');
+                }
+            });
+
+            // Toast feedback popup (no alert alerts!)
+            showToastMessage(correctCount, inputs.length);
+        }
+
+        // Custom Toast Notification
+        function showToastMessage(correct, total) {
+            const toast = document.createElement('div');
+            toast.className = `fixed bottom-6 right-6 z-50 px-5 py-3 rounded-2xl shadow-xl text-xs font-bold text-white transition-all transform duration-300 flex items-center gap-3 ${
+                correct === total ? 'bg-emerald-600' : 'bg-slateDark border border-slate-700'
+            }`;
+            
+            toast.innerHTML = `
+                <i class="fa-solid ${correct === total ? 'fa-trophy text-amber-300' : 'fa-circle-info text-cyanAccent'} text-base"></i>
+                <div>
+                    <div>Checked: ${correct} of ${total} Blanks Correct!</div>
+                    <div class="text-[10px] font-normal text-slate-300">Green = Correct | Red = Try again</div>
+                </div>
+            `;
+
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+
+        // Reset Guided Notes
+        function resetGuidedNotes() {
+            const inputs = document.querySelectorAll('.note-input');
+            inputs.forEach(input => {
+                input.value = '';
+                input.classList.remove('correct', 'incorrect');
+            });
+            updateProgress();
+        }
+
+        // Live CSS Sandbox Renderer
+        function updateLivePreview() {
+            const code = document.getElementById('cssEditor').value;
+            const target = document.getElementById('sandboxTarget');
+            target.style.cssText = code;
+        }
+
+        function resetSandbox() {
+            document.getElementById('cssEditor').value = `background-color: #e0e7ff;\ncolor: #3730a3;\npadding: 20px;\nborder: 4px solid #6366f1;\nmargin: 15px;\nborder-radius: 12px;\nfont-weight: bold;\ntext-align: center;`;
+            updateLivePreview();
+        }
+
+        // Teacher Lock Screen Functions
+        function unlockTeacherKey() {
+            const val = document.getElementById('passkeyInput').value;
+            if (val === 'cs101' || val === 'teacher' || val === 'CSS101') {
+                document.getElementById('teacherLockScreen').classList.add('hidden');
+                document.getElementById('teacherKeyContent').classList.remove('hidden');
+            } else {
+                document.getElementById('passkeyError').classList.remove('hidden');
+            }
+        }
+
+        function lockTeacherKey() {
+            document.getElementById('passkeyInput').value = '';
+            document.getElementById('teacherLockScreen').classList.remove('hidden');
+            document.getElementById('teacherKeyContent').classList.add('hidden');
+            document.getElementById('passkeyError').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
